@@ -1,0 +1,4 @@
+test-*
+[Bb]in/
+[Oo]bj/
+dotnet
