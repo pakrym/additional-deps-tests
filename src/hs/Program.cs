@@ -7,7 +7,7 @@ namespace hs
     {
         public static void Main(string[] args)
         {
-            Console.WriteLine("Yay");
+            Console.WriteLine("HOSTING_STARTUP      : " + Assembly.GetExecutingAssembly().Location);
         }
     }
 }
