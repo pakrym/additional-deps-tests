@@ -12,11 +12,13 @@ namespace app
             {
                 Console.WriteLine("APP_CONTEXT_DEPS_FILES : " + deps);
             }
-
-            var assembly = Assembly.Load("hs");
-            var type = assembly.GetType("hs.Program");
-            var method = type.GetMethod("Main");
-            method.Invoke(null, new object[] { args });
+            foreach (var arg in args)
+            {
+                var assembly = Assembly.Load(arg);
+                var type = assembly.GetType("hs.Program");
+                var method = type.GetMethod("Main");
+                method.Invoke(null, new object[] { args });
+            }
         }
     }
 }
