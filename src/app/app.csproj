@@ -5,4 +5,8 @@
     <TargetFrameworks>netcoreapp2.1;netcoreapp2.0</TargetFrameworks>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Condition="'$(DependencyVersion)' != ''" Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(DependencyVersion)" />
+  </ItemGroup>
 </Project>
+

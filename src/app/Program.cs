@@ -19,6 +19,15 @@ namespace app
                 var method = type.GetMethod("Main");
                 method.Invoke(null, new object[] { args });
             }
+            try
+            {
+                var assembly = Assembly.Load("Microsoft.Extensions.DependencyInjection.Abstractions");
+                Console.WriteLine("COMMON DEPENDENCY      : " + assembly.CodeBase + " " + assembly.GetName().Version);
+            }
+            catch
+            {
+                //ignore
+            }
         }
     }
 }
