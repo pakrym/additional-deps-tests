@@ -28,7 +28,7 @@ function hs($adddFx, $adddFxVer, $storeTFM, $hsName, $hsVer, $dependencyVersion)
     $hsList.Add($hsName);
 
     $storeLibDir = "$storeDir\x64\$storeTFM\$hsName\$hsVer\";
-    dotnet publish src\hs\hs.csproj -o $storeLibDir -p:Version=$hsVer -p:AssemblyName=$hsName -p:DependencyVersion=$dependencyVersion > "$dirName\publish.hs.log";
+    dotnet publish src\hs\hs.csproj -o $storeLibDir -p:Version=$hsVer -p:AssemblyName=$hsName -p:DependencyVersion=$dependencyVersion > "$dirName\publish.$hsName.log";
 
     if ($dependencyVersion)
     {
@@ -132,8 +132,22 @@ test -name "2.0.7_app_2.0.1_deps" `
      { assert "TESTROOT\store\x64\netcoreapp2.0\hs\2.0.1\hs.dll"; }
 
 #>
-$currentANCA = "2.1.0-preview2-final"
-$currentMNCA = "2.2.0-preview1-26501-01";
+$currentANCA = "2.1.0-rtm-30700"
+$currentMNCA = "2.1.0-rc1-26423-06";
+
+test -name "Deps-downgrade-app-upgrade" `
+-appFx "Microsoft.AspNetCore.App" `
+-appFxVer "$currentANCA" `
+-appTfm "netcoreapp2.1" `
+-dependencyVersion "2.2.0-preview1-34096" `
+{
+    hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.1.0-preview1" -storeTFM "netcoreapp2.1" -hsName "dnchs" -dependencyVersion 2.2.0-preview1-34097;
+}`
+{
+   assert "ROOT\dotnet\shared\Microsoft.AspNetCore.App\$currentANCA\Microsoft.AspNetCore.App.deps.json"
+   assert "/app/Microsoft.Extensions.DependencyInjection.Abstractions.dll"
+   assert "TESTROOT\store\x64\netcoreapp2.1\dnchs\2.1.0-preview1\dnchs.dll";
+}
 
 
 test -name "Downgrade-app-with-hs" `
@@ -142,12 +156,12 @@ test -name "Downgrade-app-with-hs" `
 -appTfm "netcoreapp2.1" `
 -dependencyVersion 2.1.0-preview1-final `
 {
-    hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.2.0-preview1" -storeTFM "netcoreapp2.1" -dependencyVersion 2.0.0;
+    hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.1.0-preview1" -storeTFM "netcoreapp2.1" -dependencyVersion 2.0.0;
 }`
 {
    assert "ROOT\dotnet\shared\Microsoft.AspNetCore.App\$currentANCA\Microsoft.AspNetCore.App.deps.json"
    assert "app/Microsoft.Extensions.DependencyInjection.Abstractions.dll"
-   assert "TESTROOT\store\x64\netcoreapp2.1\hs\2.2.0-preview1\hs.dll";
+   assert "TESTROOT\store\x64\netcoreapp2.1\hs\2.1.0-preview1\hs.dll";
 }
 
 test -name "Downgrade-fx-with-hs" `
@@ -155,12 +169,12 @@ test -name "Downgrade-fx-with-hs" `
 -appFxVer "$currentANCA" `
 -appTfm "netcoreapp2.1" `
 {
-    hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.2.0-preview1" -storeTFM "netcoreapp2.1" -dependencyVersion 2.0.0;
+    hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.1.0-preview1" -storeTFM "netcoreapp2.1" -dependencyVersion 2.0.0;
 }`
 {
    assert "ROOT\dotnet\shared\Microsoft.AspNetCore.App\$currentANCA\Microsoft.AspNetCore.App.deps.json"
-   assert "shared/Microsoft.AspNetCore.App/2.1.0-preview2-final/Microsoft.Extensions.DependencyInjection.Abstractions.dll" -skip "Seems like a bug"
-   assert "TESTROOT\store\x64\netcoreapp2.1\hs\2.2.0-preview1\hs.dll";
+   assert "shared/Microsoft.AspNetCore.App/$currentANCA/Microsoft.Extensions.DependencyInjection.Abstractions.dll" -skip "Seems like a bug"
+   assert "TESTROOT\store\x64\netcoreapp2.1\hs\2.1.0-preview1\hs.dll";
 }
 
 test -name "Multiple-dep-versions-in-hs" `
@@ -169,13 +183,13 @@ test -name "Multiple-dep-versions-in-hs" `
 -appTfm "netcoreapp2.1" `
 {
     hs -adddFx "Microsoft.AspNetCore.App" -adddFxVer "2.1.0-preview1" -storeTFM "netcoreapp2.1" -dependencyVersion 2.0.0;
-    hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.2.0-preview1" -storeTFM "netcoreapp2.1" -hsName "dnchs" -dependencyVersion 2.1.0-preview1-final;
+    hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.1.0-preview1" -storeTFM "netcoreapp2.1" -hsName "dnchs" -dependencyVersion 2.2.0-preview1-34097;
 }`
 {
    assert "ROOT\dotnet\shared\Microsoft.AspNetCore.App\$currentANCA\Microsoft.AspNetCore.App.deps.json"
-   assert "/microsoft.extensions.dependencyinjection.abstractions/2.1.0-preview1-final"
+   assert "/microsoft.extensions.dependencyinjection.abstractions/2.2.0-preview1-34097"
    assert "TESTROOT\store\x64\netcoreapp2.1\hs\2.1.0-preview1\hs.dll";
-   assert "TESTROOT\store\x64\netcoreapp2.1\dnchs\2.2.0-preview1\dnchs.dll";
+   assert "TESTROOT\store\x64\netcoreapp2.1\dnchs\2.1.0-preview1\dnchs.dll";
 }
 
 # storeTFM should be 2.0 or any
@@ -184,11 +198,11 @@ test -name "$currentMNCA-app_2.2.0_deps" `
      -appFxVer "$currentMNCA" `
      -appTfm "netcoreapp2.1" `
      {
-        hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.2.0-preview1-26500-00" -storeTFM "netcoreapp2.1";
-        hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.2.0-preview1-26501-00" -storeTFM "netcoreapp2.1"; } `
+        hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.1.0-preview1-26500-00" -storeTFM "netcoreapp2.1";
+        hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.1.0-preview1-26501-00" -storeTFM "netcoreapp2.1"; } `
      {
         assert "ROOT\dotnet\shared\Microsoft.NetCore.App\$currentMNCA\Microsoft.NetCore.App.deps.json";
-        assert "TESTROOT\store\x64\netcoreapp2.1\hs\2.2.0-preview1-26501-00\hs.dll";
+        assert "TESTROOT\store\x64\netcoreapp2.1\hs\2.1.0-preview1-26501-00\hs.dll";
      }
 
 test -name "$currentMNCA-app_2.2.0-preview1_deps" `
@@ -197,12 +211,12 @@ test -name "$currentMNCA-app_2.2.0-preview1_deps" `
      -appTfm "netcoreapp2.1" `
      {
         hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.0.0" -storeTFM "netcoreapp2.0";
-        hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.2.0-preview1" -storeTFM "netcoreapp2.1";
-        hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.2.0" -storeTFM "netcoreapp2.1";
+        hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.1.0-preview1" -storeTFM "netcoreapp2.1";
+        hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.1.0" -storeTFM "netcoreapp2.1";
      }`
      {
          assert "ROOT\dotnet\shared\Microsoft.NetCore.App\$currentMNCA\Microsoft.NetCore.App.deps.json";
-         assert "TESTROOT\store\x64\netcoreapp2.1\hs\2.2.0-preview1\hs.dll";
+         assert "TESTROOT\store\x64\netcoreapp2.1\hs\2.1.0-preview1\hs.dll";
      }
 
 
@@ -212,12 +226,12 @@ test -name "$currentANCA-app_2.0.0_deps" `
 -appTfm "netcoreapp2.1" `
 {
     hs -adddFx "Microsoft.AspNetCore.App" -adddFxVer "2.1.0-preview1" -storeTFM "netcoreapp2.1";
-    hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.2.0-preview1" -storeTFM "netcoreapp2.1" -hsName "dnchs";
+    hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.1.0-preview1" -storeTFM "netcoreapp2.1" -hsName "dnchs";
 }`
 {
    assert "ROOT\dotnet\shared\Microsoft.AspNetCore.App\$currentANCA\Microsoft.AspNetCore.App.deps.json"
    assert "TESTROOT\store\x64\netcoreapp2.1\hs\2.1.0-preview1\hs.dll";
-   assert "TESTROOT\store\x64\netcoreapp2.1\dnchs\2.2.0-preview1\dnchs.dll";
+   assert "TESTROOT\store\x64\netcoreapp2.1\dnchs\2.1.0-preview1\dnchs.dll";
 }
 
 test -name "$currentANCA-newer-deps" `
@@ -226,12 +240,12 @@ test -name "$currentANCA-newer-deps" `
 -appTfm "netcoreapp2.1" `
 {
     hs -adddFx "Microsoft.AspNetCore.App" -adddFxVer "2.1.0-preview1" -storeTFM "netcoreapp2.1";
-    hs -adddFx "Microsoft.AspNetCore.App" -adddFxVer "2.1.0-preview3" -storeTFM "netcoreapp2.1";
-    hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.2.0-preview1" -storeTFM "netcoreapp2.1" -hsName "dnchs";
-    hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.2.0-preview3" -storeTFM "netcoreapp2.1" -hsName "dnchs";
+    hs -adddFx "Microsoft.AspNetCore.App" -adddFxVer "2.1.0-klm" -storeTFM "netcoreapp2.1";
+    hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.1.0-preview1" -storeTFM "netcoreapp2.1" -hsName "dnchs";
+    hs -adddFx "Microsoft.NetCore.App" -adddFxVer "2.1.0-klm" -storeTFM "netcoreapp2.1" -hsName "dnchs";
 }`
 {
    assert "ROOT\dotnet\shared\Microsoft.AspNetCore.App\$currentANCA\Microsoft.AspNetCore.App.deps.json"
    assert "TESTROOT\store\x64\netcoreapp2.1\hs\2.1.0-preview1\hs.dll";
-   assert "TESTROOT\store\x64\netcoreapp2.1\dnchs\2.2.0-preview1\dnchs.dll";
+   assert "TESTROOT\store\x64\netcoreapp2.1\dnchs\2.1.0-preview1\dnchs.dll";
 }
